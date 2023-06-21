@@ -1,0 +1,68 @@
+version: '3'
+
+services:
+  mysql: 
+    image: mysql:8.0.33
+
+    container_name: database-mysql
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: tienda
+
+    ports:
+      - 3306:3306
+
+    volumes:
+      - ./dbdata/mysql:/var/lib/mysql
+
+  mongodb: 
+      image: mongo:6.0
+
+      container_name: database-mongodb
+
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: root
+        MONGO_INITDB_ROOT_PASSWORD: root
+        MONGO_INITDB_DATABASE: tienda
+
+      ports:
+        - 27017:27017
+
+      volumes:
+        - ./mongo-data:/data/db
+
+
+  servidor:
+    container_name: server-express
+
+    build:
+      context: ./server
+
+      dockerfile: Dockerfile
+
+    environment:
+      PORT: 3000
+      #mysql
+      DATABASE_HOST: mysql
+      DATABASE_USER: root
+      DATABASE_PASSWORD: root
+      DATABASE_NAME: tienda
+      #mongo
+      MONGODB_URL: mongodb://localhost:21017/
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: tienda
+
+
+    restart: always
+
+    depends_on:
+      - mysql
+      - mongodb
+
+    ports:
+      - 3000:3000
+
+    volumes:
+      - ./server:/server
